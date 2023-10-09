@@ -1,9 +1,9 @@
 # Extension-Blip
-Add-on: animate the text of character messages with variable speed and play sound along the animation
+Add-on: animate the text of character messages with variable speed and play sound along the animation.
 
 # What it does:
-- animate the text of character messages with variable speed and play sound along the animation
-- Can use audio files or generate sound
+- Animates the text of character messages with variable speed and plays sound along the animation.
+- Can use audio files or generate sound.
 
 # How it does it:
 - Intercept the message using events -> store it and replace by blank in chat history -> wait if an animation is playing -> message gets rendered empty -> (optional translation) -> animation start
@@ -31,7 +31,7 @@ The default option is the profile that will be used for the character with no se
 
 
 ## Text settings
-- Animation settings allow setting text speed and min/max random multiplier for more dynamism. Some special delay can be applied on comma and phrase end (?,!?.) characters.
+- Animation settings allow setting text speed and min/max random multiplier for more dynamism. Some special delay can be applied on comma and phrase end (?,!.) characters.
 
 ![Capture d'écran 2023-09-29 205324](https://github.com/SillyTavern/SillyTavern/assets/48798118/55bce69a-3b14-4891-b500-fe2b46aa68d2)
 
