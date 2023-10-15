@@ -1,22 +1,7 @@
 /*
 TODO:
 - Security
-    - Prevent swipe during streaming OK
-    - Handle special text styling while streaming OK
-    - group mode break, need to make generation wait or queue OK
-    - Detect regenerate call to stop animation
 - Features
-    - apply pitch change OK
-    - generate sound with JS OK
-    - volume option OK
-    - add wait for end of audio option OK
-    - change setting when selecting existing character voicemaps OK
-    - Auto-save on change OK
-    - Add user message management OK
-    - Add same option as TTS text OK
-    - Add a default setting OK
-    - Pitch variation OK
-    - Proper pitch shift OK
     - curve choice etc.
 */
 
@@ -29,7 +14,7 @@ import { pitchShiftFile } from "./pitch_shift.js";
 
 const extensionFolderPath = `scripts/extensions/third-party/Extension-Blip`;
 
-const MODULE_NAME = 'BLip';
+const MODULE_NAME = 'Blip';
 const DEBUG_PREFIX = "<Blip extension> ";
 const UPDATE_INTERVAL = 1000;
 
@@ -169,6 +154,7 @@ function warningCharacterNotSelected() {
 async function onEnabledClick() {
     extension_settings.blip.enabled = $('#blip_enabled').is(':checked');
     saveSettingsDebounced();
+    showLastMessage();
 }
 
 async function onEnableUserClick() {
@@ -648,7 +634,10 @@ async function hyjackMessage(chat_id, is_user=false) {
     is_in_text_animation = true;
     console.debug(DEBUG_PREFIX,"Now turn of", chat_id, "in",chat_queue);
     chat_queue.shift();
-    getContext().chat[chat_id].mes = ""; // Start rendered message empty
+
+    // Start rendered message invisible
+    //document.styleSheets[0].insertRule(".last_mes .mes_block { display: none;}", 0);
+    //getContext().chat[chat_id].mes = ""; // DBG legacy: start message empty
 }
 
 async function processMessage(chat_id, is_user=false) {
@@ -669,6 +658,9 @@ async function processMessage(chat_id, is_user=false) {
     
     getContext().chat[chat_id].mes = current_message;
 
+    message_dom.html("");
+    showLastMessage();
+
     // Translation extension compatibility
     if (extension_settings.translate.auto_mode == autoModeOptions.BOTH
         || (extension_settings.translate.auto_mode == autoModeOptions.INPUT && is_user)
@@ -687,12 +679,18 @@ async function processMessage(chat_id, is_user=false) {
     }
 
     // Continue case
-    if (is_continue) {
+    console.debug(DEBUG_PREFIX,"DBG:", current_message, last_message)
+    if (current_message.startsWith(last_message))
+        is_continue = true;
+
+    if (is_continue) {//is_continue) {
         is_continue = false;
         message_dom.html(messageFormatting(last_message,character,false,is_user));
         starting_index = last_message.length;
         console.debug(DEBUG_PREFIX,"CONTINUE detected, streaming only new part from index",starting_index);
     }
+    
+    last_message = current_message;
 
     console.debug(DEBUG_PREFIX,"Streaming message:", chat_buffer[chat_id])
     console.debug(DEBUG_PREFIX,div_dom,message_dom);
@@ -748,10 +746,11 @@ async function processMessage(chat_id, is_user=false) {
     
     //scrollChatToBottom();
     is_animation_pause = false;
-    let is_inside_asterisk = false;
-    let is_inside_quote = false
+    let is_inside_asterisk =  isOdd(countOccurrences(current_string, '*'));
+    let is_inside_quote =  isOdd(countOccurrences(current_string, '"'));
     abort_animation = false;
     $("#send_but").hide();
+    
     for(let i = starting_index; i < current_message.length; i++) {
         $("#mes_stop").show();
         // Finish animation by user abort click
@@ -1028,8 +1027,6 @@ function updateCharactersList() {
 }
 
 async function updateBlipAssetsList() {
-
-
     blip_assets = await getBlipAssetsList();
 
     $("#blip_file_asset_select")
@@ -1139,6 +1136,9 @@ jQuery(async () => {
     
     eventSource.on(event_types.CHAT_CHANGED, updateCharactersList);
     eventSource.on(event_types.GROUP_UPDATED, updateCharactersList);
+    
+    eventSource.on(event_types.CHAT_CHANGED, showLastMessage);
+    eventSource.on(event_types.MESSAGE_DELETED, showLastMessage);
 
     const wrapper = new ModuleWorkerWrapper(moduleWorker);
     setInterval(wrapper.update.bind(wrapper), UPDATE_INTERVAL);
@@ -1165,4 +1165,8 @@ async function updateAssetListOnce() {
         updateBlipAssetsList();
         await delay(1);
     }
+}
+
+function showLastMessage() {
+    $(".last_mes .mes_block").show();
 }

@@ -84,3 +84,7 @@
     margin-left: 1em;
     margin-right: 1em;
 }
+
+.last_mes .mes_block {
+    display: none;
+}
