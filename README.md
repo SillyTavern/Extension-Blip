@@ -7,7 +7,7 @@ Documentation: https://docs.sillytavern.app/extras/extensions/blip/#blip
 - Can use audio files or generate sound.
 
 # How it does it:
-- Intercept the message using events -> store it and replace by blank in chat history -> wait if an animation is playing -> message gets rendered empty -> (optional translation) -> animation start
+- Intercept the message using events -> wait if an animation is playing -> message gets rendered with text invisible -> (optional translation) -> replace text by empty string and start printing chracter by character
 - Messages received are queued to allow to run generate() while the animation is played (useful when a user message is animated or in a group chat).
 - Animation can be forced to finish by clicking on the usual abort request button (bottom right)
 
