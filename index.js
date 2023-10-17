@@ -26,7 +26,6 @@ let is_animation_pause = false;
 
 let current_multiplier = 1.0;
 
-let chat_buffer = {};
 let chat_queue = [];
 
 let abort_animation = false;
@@ -97,13 +96,11 @@ function loadSettings() {
         $("#blip_audio_mute_icon").removeClass("fa-volume-high");
         $("#blip_audio_mute_icon").addClass("fa-volume-mute");
         $("#blip_audio_mute").addClass("redOverlayGlow");
-        //$("#blip_audio").prop("muted", true);
     }
     else {
         $("#blip_audio_mute_icon").addClass("fa-volume-high");
         $("#blip_audio_mute_icon").removeClass("fa-volume-mute");
         $("#blip_audio_mute").removeClass("redOverlayGlow");
-        //$("#blip_audio").prop("muted", false);
     }
 
     $("#blip_audio_volume").text(extension_settings.blip.audioVolume);
@@ -181,14 +178,12 @@ async function onAudioMuteClick() {
     extension_settings.blip.audioMuted = !extension_settings.blip.audioMuted;
     $("#blip_audio_mute_icon").toggleClass("fa-volume-high");
     $("#blip_audio_mute_icon").toggleClass("fa-volume-mute");
-    //$("#blip_audio").prop("muted", !$("#blip_audio").prop("muted"));
     $("#blip_audio_mute").toggleClass("redOverlayGlow");
     saveSettingsDebounced();
 }
 
 async function onAudioVolumeChange() {
     extension_settings.blip.audioVolume = ~~($("#blip_audio_volume_slider").val());
-    //$("#blip_audio").prop("volume", extension_settings.blip.audioVolume * 0.01);
     $("#blip_audio_volume").text(extension_settings.blip.audioVolume);
     saveSettingsDebounced();
 }
@@ -599,29 +594,11 @@ async function hyjackMessage(chat_id, is_user=false) {
     // Ignore first message
     if (chat_id == 0)
         return;
-
-    const character = getContext().chat[chat_id].name
-
-    /*if (extension_settings.blip.voiceMap[character] === undefined && extension_settings.blip.voiceMap["default"] === undefined) {
-        console.debug(DEBUG_PREFIX, "Character",character,"has no blip voice assigned in voicemap. And no default voice profile.");
-        return;
-    }*/
-
-    /*if (is_user && !extension_settings.blip.enableUser) {
-        console.debug(DEBUG_PREFIX, "User blip is disable, nothing to do");
-        return;
-    }*/
-
-    //eventSource.emit(event_types.MESSAGE_RECEIVED, 0);
         
     // Hyjack char message
-    const message = getContext().chat[chat_id].mes;
-
-    // Save message for rendering
-    chat_buffer[chat_id] = message;
-
     const char = getContext().chat[chat_id].name;
-    console.debug(DEBUG_PREFIX,"Hyjacked from",char,"message:", message);
+    const message = getContext().chat[chat_id].mes;
+    console.debug(DEBUG_PREFIX,"Queuing message from",char,":", message);
 
     // Wait turn
     chat_queue.push(chat_id);
@@ -636,12 +613,12 @@ async function hyjackMessage(chat_id, is_user=false) {
     chat_queue.shift();
 
     // Start rendered message invisible
-    //document.styleSheets[0].insertRule(".last_mes .mes_block { display: none;}", 0);
     //getContext().chat[chat_id].mes = ""; // DBG legacy: start message empty
 }
 
 async function processMessage(chat_id, is_user=false) {
     if (!extension_settings.blip.enabled) {
+        showLastMessage();
         return;
     }
 
@@ -652,8 +629,8 @@ async function processMessage(chat_id, is_user=false) {
     const chat = getContext().chat;
     const character = chat[chat_id].name
     const div_dom = $(".mes[mesid='"+chat_id+"'");
-    const message_dom = $(div_dom).children(".mes_block").children(".mes_text"); //$( ".last_mes").children(".mes_block").children(".mes_text");
-    let current_message = chat_buffer[chat_id];
+    const message_dom = $(div_dom).children(".mes_block").children(".mes_text");
+    let current_message = chat[chat_id].mes;
     let starting_index = 0;
     
     getContext().chat[chat_id].mes = current_message;
@@ -679,7 +656,6 @@ async function processMessage(chat_id, is_user=false) {
     }
 
     // Continue case
-    console.debug(DEBUG_PREFIX,"DBG:", current_message, last_message)
     if (current_message.startsWith(last_message))
         is_continue = true;
 
@@ -692,7 +668,7 @@ async function processMessage(chat_id, is_user=false) {
     
     last_message = current_message;
 
-    console.debug(DEBUG_PREFIX,"Streaming message:", chat_buffer[chat_id])
+    console.debug(DEBUG_PREFIX,"Streaming message:", current_message)
     console.debug(DEBUG_PREFIX,div_dom,message_dom);
     
     const only_quote = extension_settings.blip.onlyQuote;
@@ -823,14 +799,6 @@ async function processMessage(chat_id, is_user=false) {
     $("#send_but").show();
     
     is_in_text_animation = false;
-
-    //$(".mes[mesid='" + chat_id + "']").remove();
-    //messageEditDone(message_dom);
-    //deleteLastMessage();
-    //getContext().chat.push(final_message);
-    //addOneMessage(final_message);
-    //await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, (chat.length - 1));
-    //console.debug(DEBUG_PREFIX,getContext().chat);
 }
 
 async function loadAudioAsset(audio_asset) {
@@ -854,16 +822,6 @@ async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pi
         if (!extension_settings.blip.audioMuted) {
             audio = pitchShiftFile(decodedData, volume, pitch); // DBG
         }
-
-        /*
-        $("#blip_audio").prop("volume", extension_settings.blip.audioVolume * 0.01 * volume * 0.01);
-        $("#blip_audio").prop("mozPreservesPitch ", false);
-        $("#blip_audio").prop("playbackRate", pitch);
-        $("#blip_audio")[0].pause();
-        $("#blip_audio")[0].currentTime = 0;
-        $("#blip_audio")[0].play();
-        //console.debug(DEBUG_PREFIX,"PITCH",pitch);
-        */
        
         let wait_time = current_multiplier * speed;
         if (wait)
@@ -872,9 +830,6 @@ async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pi
         if (audio !== null)
             audio.stop(0);
     }
-    
-    //$("#blip_audio").prop("volume", extension_settings.blip.audioVolume * 0.01);
-    //$("#blip_audio").prop("playbackRate", 1.0);
 }
 
 async function playGeneratedBlip(volume, speed, min_frequency, max_frequency) {
@@ -1154,15 +1109,6 @@ async function updateCharactersListOnce() {
     while (characters_list.length == 0) {
         console.debug(DEBUG_PREFIX,"UDPATING char list")
         updateCharactersList();
-        await delay(1);
-    }
-}
-
-async function updateAssetListOnce() {
-    console.debug(DEBUG_PREFIX,"UDPATING char list", blip_assets)
-    while (blip_assets.length == 0) {
-        console.debug(DEBUG_PREFIX,"UPDATING asset list")
-        updateBlipAssetsList();
         await delay(1);
     }
 }
