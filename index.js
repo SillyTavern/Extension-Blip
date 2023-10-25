@@ -16,7 +16,7 @@ const extensionFolderPath = `scripts/extensions/third-party/Extension-Blip`;
 
 const MODULE_NAME = 'Blip';
 const DEBUG_PREFIX = "<Blip extension> ";
-const UPDATE_INTERVAL = 1000;
+const UPDATE_INTERVAL = 100;
 
 let characters_list = [] // Updated with module worker
 let blip_assets = null; // Initialized only once with module workers
@@ -594,7 +594,6 @@ async function hyjackMessage(chat_id, is_user=false) {
     }
 
     // Ignore first message and system messages
-    console.debug(DEBUG_PREFIX,"DEBUG",getContext().chat[chat_id])
     if (chat_id == 0 || getContext().chat[chat_id].is_system == true) {
         showLastMessage();
         return;
@@ -628,7 +627,7 @@ async function processMessage(chat_id, is_user=false) {
     }
 
     // Ignore first message and system messages
-    if (chat_id == 0 || getContext().chat[chat_id].is_system)
+    if (chat_id == 0 || getContext().chat[chat_id].is_system == true)
         return;
 
     const chat = getContext().chat;
@@ -920,8 +919,6 @@ function updateCharactersList() {
 
     current_characters = Array.from(current_characters);
 
-    console.debug(DEBUG_PREFIX,context)
-
     if (current_characters.length == 0)
         return;
 
@@ -1008,7 +1005,7 @@ async function moduleWorker() {
     //console.debug(DEBUG_PREFIX,"DEBUG:",getContext());
 
     // Avoid hiding system chat
-    console.debug(DEBUG_PREFIX,"DEBUG",getContext().chat[getContext().chat.length-1])
+    //console.debug(DEBUG_PREFIX,"DEBUG",getContext().chat[getContext().chat.length-1])
     if (getContext().characterId === undefined
     || getContext().chat[getContext().chat.length-1].is_system == true)
         showLastMessage();
