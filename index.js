@@ -593,8 +593,9 @@ async function hyjackMessage(chat_id, is_user=false) {
         return;
     }
 
-    // Ignore first message
-    if (chat_id == 0) {
+    // Ignore first message and system messages
+    console.debug(DEBUG_PREFIX,"DEBUG",getContext().chat[chat_id])
+    if (chat_id == 0 || getContext().chat[chat_id].is_system == true) {
         showLastMessage();
         return;
     }
@@ -626,8 +627,8 @@ async function processMessage(chat_id, is_user=false) {
         return;
     }
 
-    // Ignore first message
-    if (chat_id == 0)
+    // Ignore first message and system messages
+    if (chat_id == 0 || getContext().chat[chat_id].is_system)
         return;
 
     const chat = getContext().chat;
@@ -1007,7 +1008,9 @@ async function moduleWorker() {
     //console.debug(DEBUG_PREFIX,"DEBUG:",getContext());
 
     // Avoid hiding system chat
-    if (getContext().characterId === undefined)
+    console.debug(DEBUG_PREFIX,"DEBUG",getContext().chat[getContext().chat.length-1])
+    if (getContext().characterId === undefined
+    || getContext().chat[getContext().chat.length-1].is_system == true)
         showLastMessage();
 
     if (moduleEnabled) {
