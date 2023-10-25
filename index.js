@@ -588,12 +588,16 @@ function updateVoiceMapText() {
 const delay = s => new Promise(res => setTimeout(res, s*1000));
 
 async function hyjackMessage(chat_id, is_user=false) {
-    if (!extension_settings.blip.enabled)
+    if (!extension_settings.blip.enabled) {
+        showLastMessage();
         return;
+    }
 
     // Ignore first message
-    if (chat_id == 0)
+    if (chat_id == 0) {
+        showLastMessage();
         return;
+    }
         
     // Hyjack char message
     const char = getContext().chat[chat_id].name;
@@ -999,6 +1003,12 @@ async function updateBlipAssetsList() {
 
 async function moduleWorker() {
     const moduleEnabled = extension_settings.blip.enabled;
+
+    //console.debug(DEBUG_PREFIX,"DEBUG:",getContext());
+
+    // Avoid hiding system chat
+    if (getContext().characterId === undefined)
+        showLastMessage();
 
     if (moduleEnabled) {
         if (blip_assets === null)
