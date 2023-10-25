@@ -637,7 +637,7 @@ async function processMessage(chat_id, is_user=false) {
     let current_message = chat[chat_id].mes;
     let starting_index = 0;
     
-    getContext().chat[chat_id].mes = current_message;
+    //getContext().chat[chat_id].mes = current_message;
 
     message_dom.html("");
     showLastMessage();
@@ -1006,9 +1006,9 @@ async function moduleWorker() {
 
     // Avoid hiding system chat
     //console.debug(DEBUG_PREFIX,"DEBUG",getContext().chat[getContext().chat.length-1])
-    if (getContext().characterId === undefined
-    || getContext().chat[getContext().chat.length-1].is_system == true)
-        showLastMessage();
+    //if (getContext().characterId === undefined
+    //|| getContext().chat[getContext().chat.length-1].is_system == true)
+    //    showLastMessage();
 
     if (moduleEnabled) {
         if (blip_assets === null)
