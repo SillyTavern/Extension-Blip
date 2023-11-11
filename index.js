@@ -107,8 +107,8 @@ const presets = {
         audioMaxPitch: 1,
         audioPlayFull: false,
     
-        generatedMinFrequency: 440,
-        generatedMaxFrequency: 440, 
+        generatedMinFrequency: 300,
+        generatedMaxFrequency: 300, 
     },
     "dynamic speed / static frequency (medium pitch)": {
         minSpeedMultiplier: 0.5,
@@ -124,8 +124,8 @@ const presets = {
         audioMaxPitch: 1,
         audioPlayFull: false,
     
-        generatedMinFrequency: 900,
-        generatedMaxFrequency: 900, 
+        generatedMinFrequency: 600,
+        generatedMaxFrequency: 600, 
     },
     "dynamic speed / static frequency (high pitch)": {
         minSpeedMultiplier: 0.5,
@@ -141,8 +141,8 @@ const presets = {
         audioMaxPitch: 1,
         audioPlayFull: false,
     
-        generatedMinFrequency: 1700,
-        generatedMaxFrequency: 1700, 
+        generatedMinFrequency: 1200,
+        generatedMaxFrequency: 1200, 
     },
     "dynamic speed / random frequency (low pitch)": {
         minSpeedMultiplier: 0.5,
@@ -158,8 +158,8 @@ const presets = {
         audioMaxPitch: 1,
         audioPlayFull: false,
     
-        generatedMinFrequency: 440,
-        generatedMaxFrequency: 640, 
+        generatedMinFrequency: 300,
+        generatedMaxFrequency: 600, 
     },
     "dynamic speed / random frequency (med pitch)": {
         minSpeedMultiplier: 0.5,
@@ -175,8 +175,8 @@ const presets = {
         audioMaxPitch: 1,
         audioPlayFull: false,
     
-        generatedMinFrequency: 900,
-        generatedMaxFrequency: 1100, 
+        generatedMinFrequency: 600,
+        generatedMaxFrequency: 1200, 
     },
     "dynamic speed / random frequency (high pitch)": {
         minSpeedMultiplier: 0.5,
@@ -192,9 +192,26 @@ const presets = {
         audioMaxPitch: 1,
         audioPlayFull: false,
     
-        generatedMinFrequency: 1700,
-        generatedMaxFrequency: 1900, 
-    }   
+        generatedMinFrequency: 1200,
+        generatedMaxFrequency: 1600, 
+    },
+    "Sans style (better use with the blip file)": {
+        minSpeedMultiplier: 0.9,
+        maxSpeedMultiplier: 1.1,
+        commaDelay: 150,
+        phraseDelay: 300,
+    
+        textSpeed: 10,
+    
+        audioVolumeMultiplier: 100,
+        audioSpeed: 60,
+        audioMinPitch: 1,
+        audioMaxPitch: 1,
+        audioPlayFull: false,
+    
+        generatedMinFrequency: 650,
+        generatedMaxFrequency: 650,
+    }
 }
 
 function loadSettings() {
@@ -432,6 +449,9 @@ async function onPresetChange() {
     $('#blip_audio_max_pitch').val(preset.audioMaxPitch);
     $('#blip_audio_max_pitch_value').text(preset.audioMaxPitch);
 
+    $("#blip_audio_origin").val("generated");
+    $("#blip_file_settings").hide();
+    $("#blip_generated_settings").show();
     $("#blip_audio_play_full").prop('checked', preset.audioPlayFull);
 
     $('#blip_generated_min_frequency').val(preset.generatedMinFrequency);
@@ -1039,20 +1059,21 @@ async function playAudioFile(decodedData, audio_volume, speed, min_pitch, max_pi
     }
 }
 
-async function playGeneratedBlip(volume, speed, min_frequency, max_frequency) {
+async function playGeneratedBlip(audio_volume, speed, min_frequency, max_frequency) {
+    const volume = audio_volume * extension_settings.blip.audioVolume / 100;
     while (is_in_text_animation) {
         if (is_animation_pause || !is_text_to_blip) {
             await delay(0.01);
             continue;
         }
         const frequency = Math.random() * (max_frequency - min_frequency) + min_frequency;
-        playBlip(frequency);
+        playBlip(frequency, volume);
         await delay(0.01 + current_multiplier * speed);
     }
 }
 
 // Function to play a sound with a certain frequency
-function playBlip(frequency) {
+function playBlip(frequency, volume) {
     // Create an oscillator node
     let oscillator = audioContext.createOscillator();
   
@@ -1078,7 +1099,7 @@ function playBlip(frequency) {
     oscillator.start(audioContext.currentTime);
   
     // Create an "attack" stage (volume ramp up)
-    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
   
     // Create a "decay" stage (volume ramp down)
     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1);
