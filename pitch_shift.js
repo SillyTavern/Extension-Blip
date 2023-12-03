@@ -18,11 +18,11 @@
 * MAX_FRAME_LENGTH but it MUST be a power of 2. osamp is the STFT
 * oversampling factor which also determines the overlap between adjacent STFT
 * frames. It should at least be 4 for moderate scaling ratios. A value of 32 is
-* recommended for best quality. sampleRate takes the sample rate for the signal 
-* in unit Hz, ie. 44100 for 44.1 kHz audio. The data passed to the routine in 
-* indata[] should be in the range [-1.0, 1.0), which is also the output range 
+* recommended for best quality. sampleRate takes the sample rate for the signal
+* in unit Hz, ie. 44100 for 44.1 kHz audio. The data passed to the routine in
+* indata[] should be in the range [-1.0, 1.0), which is also the output range
 * for the data, make sure you scale the data accordingly (for 16bit signed integers
-* you would have to divide (and multiply) by 32768). 
+* you would have to divide (and multiply) by 32768).
 *
 * COPYRIGHT 1999-2006 Stephan M. Bernsee <smb [AT] dspdimension [DOT] com>
 *
@@ -30,7 +30,7 @@
 *
 * Permission to use, copy, modify, distribute and sell this software and its
 * documentation for any purpose is hereby granted without fee, provided that
-* the above copyright notice and this license appear in all source copies. 
+* the above copyright notice and this license appear in all source copies.
 * THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT EXPRESS OR IMPLIED WARRANTY OF
 * ANY KIND. See http://www.dspguru.com/wol.htm for more information.
 *
@@ -54,12 +54,12 @@ export function pitchShiftFile(audioBuffer, volume, shiftAmount) {
             //var in_data_r=decodedData.getChannelData(1);
             //console.log(in_data_r);
             //console.log(shiftAmount);
-                in_data_l= PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
-                //console.log(in_data_l);
-                //in_data_r= PitchShift(shiftAmount, in_data_r.length, 1024, 10, audioCtx.sampleRate, in_data_r);
-                decodedData.copyToChannel(in_data_l, i);
-                //decodedData.copyToChannel(in_data_r, 1);
-            }
+            in_data_l= PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
+            //console.log(in_data_l);
+            //in_data_r= PitchShift(shiftAmount, in_data_r.length, 1024, 10, audioCtx.sampleRate, in_data_r);
+            decodedData.copyToChannel(in_data_l, i);
+            //decodedData.copyToChannel(in_data_r, 1);
+        }
     }
     var source = audioCtx.createBufferSource(); // creates a sound source
     source.buffer = decodedData;       // tell the source which sound to play
@@ -80,20 +80,20 @@ function loadTheTrack()
 {
     var input = document.createElement('input');
     input.type = 'file';
-    input.style = "display:none";
+    input.style = 'display:none';
     input.onchange = function (e) {
         var file = e.target.files[0];
         console.log(file);
         var reader = new FileReader();
         reader.onload = function () {
-            console.log("decoding audio data with" + this.result);
-            document.getElementById('status').innerText="Pitch Shifting (yeah it takes a min)....";
+            console.log('decoding audio data with' + this.result);
+            document.getElementById('status').innerText='Pitch Shifting (yeah it takes a min)....';
             audioCtx.decodeAudioData(this.result, (decodedData) => {
                 var in_data_l=decodedData.getChannelData(0);
                 console.log(in_data_l);
                 var in_data_r=decodedData.getChannelData(1);
                 console.log(in_data_r);
-                var shiftAmount=document.getElementById("shiftAmount").value;
+                var shiftAmount=document.getElementById('shiftAmount').value;
                 console.log(shiftAmount);
                 in_data_l= PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
                 console.log(in_data_l);
@@ -104,23 +104,23 @@ function loadTheTrack()
                 source.buffer = decodedData;       // tell the source which sound to play
                 source.connect(audioCtx.destination);       // connect the source to the context's destination (the speakers)
                 console.log('starting');
-                document.getElementById('status').innerText="Playing...";
+                document.getElementById('status').innerText='Playing...';
                 source.start(0);                            // play the source now
             }, (e) => {
                 alert('Sorry this browser unable to download this file... try Chrome');
             });
-        }
+        };
         reader.readAsArrayBuffer(file);
-    }
-    document.getElementById("wrapper").appendChild(input);
+    };
+    document.getElementById('wrapper').appendChild(input);
     input.click();
 }
 
 function PitchShift(/* float[*/ pitchShift, /* long */ numSampsToProcess, /* long */ fftFrameSize,
-        /* long */ osamp, /* float[*/ sampleRate, /* float[] */ indata) {
-        /* double */ var magn, phase, tmp, window, real, imag;
-        /* double */ var freqPerBin, expct;
-        /* long */ var i, k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
+    /* long */ osamp, /* float[*/ sampleRate, /* float[] */ indata) {
+    /* double */ var magn, phase, tmp, window, real, imag;
+    /* double */ var freqPerBin, expct;
+    /* long */ var i, k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
 
     const MAX_FRAME_LENGTH = 16000;
     var gInFIFO=new Array(MAX_FRAME_LENGTH).fill(0.0);
@@ -134,7 +134,7 @@ function PitchShift(/* float[*/ pitchShift, /* long */ numSampsToProcess, /* lon
     var gSynFreq = new Array(MAX_FRAME_LENGTH).fill(0.0);
     var gSynMagn =new Array(MAX_FRAME_LENGTH).fill(0.0);
     var gRover=0;
-    
+
     /* float[] */var outdata = indata;
     /* set up some handy variables */
     fftFrameSize2 = Math.trunc(fftFrameSize / 2);
