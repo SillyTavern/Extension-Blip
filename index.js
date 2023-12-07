@@ -747,7 +747,7 @@ async function applySetting() {
     updateVoiceMapText();
     console.debug(DEBUG_PREFIX, 'Updated settings of ', character, ':', extension_settings.blip.voiceMap[character]);
     saveSettingsDebounced();
-    toastr.info('Saved Blip settings.', DEBUG_PREFIX + ' saved setting for '+character, { timeOut: 10000, extendedTimeOut: 20000, preventDuplicates: true });
+    toastr.info('Saved Blip settings.', DEBUG_PREFIX + ' saved setting for ' + character, { timeOut: 10000, extendedTimeOut: 20000, preventDuplicates: true });
 }
 
 async function onDeleteClick() {
@@ -764,7 +764,7 @@ async function onDeleteClick() {
     console.debug(DEBUG_PREFIX, 'Deleted settings of ', character);
     updateVoiceMapText();
     saveSettingsDebounced();
-    toastr.info('Deleted.', DEBUG_PREFIX + ' delete '+character+' from voice map.', { timeOut: 10000, extendedTimeOut: 20000, preventDuplicates: true });
+    toastr.info('Deleted.', DEBUG_PREFIX + ' delete ' + character + ' from voice map.', { timeOut: 10000, extendedTimeOut: 20000, preventDuplicates: true });
     $('#blip_preset_select').val('none');
 }
 
@@ -808,9 +808,9 @@ function updateVoiceMapText() {
 //#############################//
 
 
-const delay = s => new Promise(res => setTimeout(res, s*1000));
+const delay = s => new Promise(res => setTimeout(res, s * 1000));
 
-async function hyjackMessage(chat_id, is_user=false) {
+async function hyjackMessage(chat_id, is_user = false) {
     if (!extension_settings.blip.enabled) {
         showLastMessage();
         return;
@@ -843,7 +843,7 @@ async function hyjackMessage(chat_id, is_user=false) {
     //getContext().chat[chat_id].mes = ""; // DBG legacy: start message empty
 }
 
-async function processMessage(chat_id, is_user=false) {
+async function processMessage(chat_id, is_user = false) {
     if (!extension_settings.blip.enabled) {
         showLastMessage();
         return;
@@ -855,7 +855,7 @@ async function processMessage(chat_id, is_user=false) {
 
     const chat = getContext().chat;
     const character = chat[chat_id].name;
-    const div_dom = $('.mes[mesid=\''+chat_id+'\'');
+    const div_dom = $('.mes[mesid=\'' + chat_id + '\'');
     const message_dom = $(div_dom).children('.mes_block').children('.mes_text');
     let current_message = chat[chat_id].mes;
     let starting_index = 0;
@@ -1317,7 +1317,7 @@ jQuery(async () => {
     /*/
 
     $('#mes_stop').on('click', function() {abort_animation = true; is_continue = false;});
-    $('#option_continue').on('click', function() {is_continue = true; last_message = getContext().chat[getContext().chat.length-1].mes;});
+    $('#option_continue').on('click', function() {is_continue = true; last_message = getContext().chat[getContext().chat.length - 1].mes;});
 
     eventSource.on(event_types.MESSAGE_RECEIVED, (chat_id) => hyjackMessage(chat_id));
     eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (chat_id) => processMessage(chat_id));

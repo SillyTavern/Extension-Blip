@@ -46,15 +46,15 @@ export function pitchShiftFile(audioBuffer, volume, shiftAmount) {
     if (shiftAmount != 1.0) {
         // Copy buffer
         decodedData = audioCtx.createBuffer(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
-        for(let i=0; i < audioBuffer.numberOfChannels;i++) {
+        for(let i = 0; i < audioBuffer.numberOfChannels;i++) {
             decodedData.copyToChannel(audioBuffer.getChannelData(i), i);
 
-            var in_data_l=decodedData.getChannelData(i);
+            var in_data_l = decodedData.getChannelData(i);
             //console.log(in_data_l);
             //var in_data_r=decodedData.getChannelData(1);
             //console.log(in_data_r);
             //console.log(shiftAmount);
-            in_data_l= PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
+            in_data_l = PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
             //console.log(in_data_l);
             //in_data_r= PitchShift(shiftAmount, in_data_r.length, 1024, 10, audioCtx.sampleRate, in_data_r);
             decodedData.copyToChannel(in_data_l, i);
@@ -87,24 +87,24 @@ function loadTheTrack()
         var reader = new FileReader();
         reader.onload = function () {
             console.log('decoding audio data with' + this.result);
-            document.getElementById('status').innerText='Pitch Shifting (yeah it takes a min)....';
+            document.getElementById('status').innerText = 'Pitch Shifting (yeah it takes a min)....';
             audioCtx.decodeAudioData(this.result, (decodedData) => {
-                var in_data_l=decodedData.getChannelData(0);
+                var in_data_l = decodedData.getChannelData(0);
                 console.log(in_data_l);
-                var in_data_r=decodedData.getChannelData(1);
+                var in_data_r = decodedData.getChannelData(1);
                 console.log(in_data_r);
-                var shiftAmount=document.getElementById('shiftAmount').value;
+                var shiftAmount = document.getElementById('shiftAmount').value;
                 console.log(shiftAmount);
-                in_data_l= PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
+                in_data_l = PitchShift(shiftAmount, in_data_l.length, 1024, 10, audioCtx.sampleRate, in_data_l);
                 console.log(in_data_l);
-                in_data_r= PitchShift(shiftAmount, in_data_r.length, 1024, 10, audioCtx.sampleRate, in_data_r);
+                in_data_r = PitchShift(shiftAmount, in_data_r.length, 1024, 10, audioCtx.sampleRate, in_data_r);
                 decodedData.copyToChannel(in_data_l, 0);
                 decodedData.copyToChannel(in_data_r, 1);
                 var source = audioCtx.createBufferSource(); // creates a sound source
                 source.buffer = decodedData;       // tell the source which sound to play
                 source.connect(audioCtx.destination);       // connect the source to the context's destination (the speakers)
                 console.log('starting');
-                document.getElementById('status').innerText='Playing...';
+                document.getElementById('status').innerText = 'Playing...';
                 source.start(0);                            // play the source now
             }, (e) => {
                 alert('Sorry this browser unable to download this file... try Chrome');
@@ -123,17 +123,17 @@ function PitchShift(/* float[*/ pitchShift, /* long */ numSampsToProcess, /* lon
     /* long */ var i, k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
 
     const MAX_FRAME_LENGTH = 16000;
-    var gInFIFO=new Array(MAX_FRAME_LENGTH).fill(0.0);
-    var gOutFIFO=new Array(MAX_FRAME_LENGTH).fill(0.0);
-    var gFFTworksp = new Array(2*MAX_FRAME_LENGTH).fill(0.0);
-    var gLastPhase = new Array(MAX_FRAME_LENGTH/2+1).fill(0.0);
-    var gSumPhase = new Array(MAX_FRAME_LENGTH/2+1).fill(0.0);
-    var gOutputAccum = new Array(2*MAX_FRAME_LENGTH).fill(0.0);
+    var gInFIFO = new Array(MAX_FRAME_LENGTH).fill(0.0);
+    var gOutFIFO = new Array(MAX_FRAME_LENGTH).fill(0.0);
+    var gFFTworksp = new Array(2 * MAX_FRAME_LENGTH).fill(0.0);
+    var gLastPhase = new Array(MAX_FRAME_LENGTH / 2 + 1).fill(0.0);
+    var gSumPhase = new Array(MAX_FRAME_LENGTH / 2 + 1).fill(0.0);
+    var gOutputAccum = new Array(2 * MAX_FRAME_LENGTH).fill(0.0);
     var gAnaFreq = new Array(MAX_FRAME_LENGTH).fill(0.0);
     var gAnaMagn = new Array(MAX_FRAME_LENGTH).fill(0.0);
     var gSynFreq = new Array(MAX_FRAME_LENGTH).fill(0.0);
-    var gSynMagn =new Array(MAX_FRAME_LENGTH).fill(0.0);
-    var gRover=0;
+    var gSynMagn = new Array(MAX_FRAME_LENGTH).fill(0.0);
+    var gRover = 0;
 
     /* float[] */var outdata = indata;
     /* set up some handy variables */
