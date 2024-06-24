@@ -1344,9 +1344,10 @@ async function moduleWorker() {
 
 // This function is called when the extension is loaded
 jQuery(async () => {
+    const getContainer = () => $(document.getElementById('blip_container') ?? document.getElementById('extensions_settings'));
     const windowHtml = $(await $.get(`${extensionFolderPath}/window.html`));
 
-    $('#extensions_settings').append(windowHtml);
+    getContainer().append(windowHtml);
     loadSettings();
 
     $('#blip_enabled').on('click', onEnabledClick);
