@@ -866,14 +866,14 @@ async function processMessage(chat_id, is_user = false) {
         return;
     }
 
-    if (isStreamingEnabled()) {
+    if (isStreamingEnabled() && !is_user) {
         console.debug(DEBUG_PREFIX, 'Streaming is enabled, skipping message processing');
         showLastMessage();
         return;
     }
 
     // Ignore first message and system messages
-    if (chat_id == 0 || getContext().chat[chat_id].is_system == true)
+    if ((chat_id == 0 && !is_user)|| getContext().chat[chat_id].is_system == true)
         return;
 
     is_in_text_animation = true;
