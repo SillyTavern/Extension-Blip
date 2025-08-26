@@ -1138,7 +1138,7 @@ async function playOnStream(token) {
             lastTokenLength: 0, // Length of the token
             previousChar: ''
         };
-        console.log('BLIP: New message, state reset');
+        console.log(DEBUG_PREFIX, 'New message, state reset');
     }
 
     // 3.) Providing consistent character encoding
@@ -1157,8 +1157,8 @@ async function playOnStream(token) {
         return;
     }
 
-    /* Debug log
-    console.log(`BLIP: New content: "${newContent}" | State - Asterisks: ${streamState.isInsideAsterisks}, Quotes: ${streamState.isInsideQuotes}`); */
+    /* Debug log */
+    // console.log(DEBUG_PREFIX, `New content: "${newContent}" | State - Asterisks: ${streamState.isInsideAsterisks}, Quotes: ${streamState.isInsideQuotes}`);
 
     let shouldPlaySound = false;
 
@@ -1227,7 +1227,7 @@ async function playOnStream(token) {
         return;
     }
 
-    console.log('BLIP: Playing sound');
+    console.log(DEBUG_PREFIX, 'Playing sound');
 
     const audio_volume = character_settings['audioVolume'] / 100;
     const audio_origin = character_settings['audioOrigin'];
@@ -1263,7 +1263,7 @@ async function playOnStream(token) {
             // Storing the ID
             blip_timeouts.push(timeoutId);
         }).catch(err => {
-            console.error('BLIP: Error loading audio:', err);
+            console.error(DEBUG_PREFIX, 'Error loading audio:', err);
         });
     } else { // Generate blip mode
         const audio_min_frequency = character_settings['audioSettings']['minFrequency'];
@@ -1503,7 +1503,7 @@ jQuery(async () => {
 
     // Reset stream state on new message, chat change, or swipe
     const resetStreamState = (source) => {
-        console.log(`BLIP: State reset triggered by: ${source}`);
+        console.log(DEBUG_PREFIX, `State reset triggered by: ${source}`);
         streamState = {};
         // Clear all pending timeouts
         blip_timeouts.forEach(timeoutId => clearTimeout(timeoutId));
