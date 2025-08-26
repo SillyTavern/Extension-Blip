@@ -876,7 +876,6 @@ async function processMessage(chat_id, is_user = false) {
     if (chat_id == 0 || getContext().chat[chat_id].is_system == true)
         return;
 
-    // <<< ESSENTIAL: This is where we set up the animation lock
     is_in_text_animation = true;
 
     const chat = getContext().chat;
@@ -895,28 +894,39 @@ async function processMessage(chat_id, is_user = false) {
     if (extension_settings.translate.auto_mode == autoModeOptions.BOTH
         || (extension_settings.translate.auto_mode == autoModeOptions.INPUT && is_user)
         || (extension_settings.translate.auto_mode == autoModeOptions.RESPONSES && !is_user)) {
+        console.debug(DEBUG_PREFIX, 'Translating...');
         current_message = await translate(current_message, extension_settings.translate.target_language);
+        console.debug(DEBUG_PREFIX, 'Translation:', current_message);
     }
 
     if ((extension_settings.blip.voiceMap[character] === undefined && extension_settings.blip.voiceMap['default'] === undefined)
         || (is_user && !extension_settings.blip.enableUser)) {
         message_dom.html(messageFormatting(current_message, character, false, is_user));
-        is_in_text_animation = false; // It's still very important to unlock the lock here, too
+        is_in_text_animation = false;
         return;
     }
 
     // Continue case
-    if (current_message.startsWith(last_message)) is_continue = true;
-    
+    if (current_message.startsWith(last_message)) {
+        is_continue = true;
+    }
+
     if (is_continue) {
         is_continue = false;
         message_dom.html(messageFormatting(last_message, character, false, is_user));
         starting_index = last_message.length;
+        console.debug(DEBUG_PREFIX, 'CONTINUE detected, streaming only new part from index', starting_index);
     }
+
     last_message = current_message;
+
+    console.debug(DEBUG_PREFIX, 'Streaming message:', current_message);
+    console.debug(DEBUG_PREFIX, div_dom, message_dom);
 
     const only_quote = extension_settings.blip.onlyQuote;
     const ignore_asterisk = extension_settings.blip.ignoreAsterisk;
+
+    console.debug(DEBUG_PREFIX, 'Only quote:', only_quote, 'Ignore asterisk:', ignore_asterisk);
 
     let character_settings = extension_settings.blip.voiceMap[character] ?? extension_settings.blip.voiceMap['default'];
     let text_speed = character_settings['textSpeed'] / 1000;
@@ -939,7 +949,6 @@ async function processMessage(chat_id, is_user = false) {
 
     let previous_char = '';
     let current_string = current_message.substring(0, starting_index);
-    //scrollChatToBottom();
 
     is_animation_pause = false;
     let is_inside_asterisk = isOdd(countOccurrences(current_string, '*'));
@@ -952,17 +961,24 @@ async function processMessage(chat_id, is_user = false) {
 
     for (let i = starting_index; i < current_message.length; i++) {
         $('#mes_stop').show();
+        // Finish animation by user abort click
         if (abort_animation) {
-            break; // After running, this puts the UI back into shape
+            break;
         }
 
         hideSwipeButtons();
         message_dom.closest('.mes_block').find('.mes_buttons').hide();
         const next_char = current_message[i];
 
-        if (next_char == '*') is_inside_asterisk = !is_inside_asterisk;
-        if (next_char == '"') is_inside_quote = !is_inside_quote;
+        // Special characters detection
+        if (next_char == '*') {
+            is_inside_asterisk = !is_inside_asterisk;
+        }
+        if (next_char == '"') {
+            is_inside_quote = !is_inside_quote;
+        }
 
+        // Ignore everything in asterisk and only quote options
         is_text_to_blip = !(is_inside_asterisk && ignore_asterisk) && (!only_quote || (is_inside_quote && only_quote));
         const isSpecialChar = (next_char === '*' || next_char === '"');
 
@@ -984,6 +1000,7 @@ async function processMessage(chat_id, is_user = false) {
             }
         }
 
+        // Change speed multiplier on end of phrase
         if (['!', '?', '.'].includes(next_char) && previous_char != next_char) {
             current_multiplier = Math.random() * (max_speed_multiplier - min_speed_multiplier) + min_speed_multiplier;
         }
@@ -991,10 +1008,12 @@ async function processMessage(chat_id, is_user = false) {
         await delay(current_multiplier * text_speed);
         current_string += next_char;
 
+        // Predict special character for continuous formating
         let predicted_string = current_string;
         const charsToBalance = ['*', '"'];
         for (const char of charsToBalance) {
             if (isOdd(countOccurrences(current_string, char))) {
+                // Add character at the end to balance it
                 predicted_string = predicted_string.trimEnd() + char;
             }
         }
@@ -1002,10 +1021,10 @@ async function processMessage(chat_id, is_user = false) {
         message_dom.html(messageFormatting(predicted_string, character, false, is_user));
         previous_char = next_char;
 
+        // comma pause
         if (comma_delay > 0 && [',', ';'].includes(previous_char)) {
             is_animation_pause = true;
             await delay(comma_delay);
-            //scrollChatToBottom();
             is_animation_pause = false;
         }
 
@@ -1013,16 +1032,18 @@ async function processMessage(chat_id, is_user = false) {
         if (phrase_delay > 0 && ['!', '?', '.'].includes(previous_char)) {
             is_animation_pause = true;
             await delay(phrase_delay);
-            //scrollChatToBottom();
             is_animation_pause = false;
         }
 
-        if (extension_settings.blip.autoScrollChatToAnimation) scrollChatToBottom();
+        if (extension_settings.blip.autoScrollChatToAnimation) {
+            scrollChatToBottom();
+        }
     }
 
     // This cleans up the mess of the loop
     message_dom.html(messageFormatting(current_message, character, false, is_user));
     abort_animation = false;
+
     message_dom.closest('.mes_block').find('.mes_buttons').show();
     showSwipeButtons();
     $('#mes_stop').hide();
@@ -1491,9 +1512,9 @@ jQuery(async () => {
 
     // GENERATION events
     eventSource.on(event_types.GENERATION_STARTED, () => resetStreamState('GENERATION_STARTED'));
-    eventSource.on(event_types.GENERATION_ENDED, () => resetStreamState('GENERATION_ENDED'));  
+    eventSource.on(event_types.GENERATION_ENDED, () => resetStreamState('GENERATION_ENDED'));
     eventSource.on(event_types.GENERATION_STOPPED, () => resetStreamState('GENERATION_STOPPED'));
-    
+
     eventSource.on(event_types.CHAT_CHANGED, () => {
         resetStreamState('CHAT_CHANGED');
         updateCharactersList();
